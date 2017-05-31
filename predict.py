@@ -19,39 +19,6 @@ result_dir = 'results'
 img_height, img_width = 32, 32
 channels = 3
 
-model = Sequential()
-model.add(Conv2D(32, (3, 3), input_shape=(32, 32, 3)))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-
-model.add(Conv2D(32, (3, 3)))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-
-model.add(Conv2D(32, (3, 3)))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-
-model.add(Flatten())
-model.add(Dense(128))
-model.add(Activation('relu'))
-model.add(Dropout(0.5))
-model.add(Dense(322))
-model.add(Activation('softmax'))
-
-model.load_weights(os.path.join(result_dir, 'weights.h5'))
-model.compile(loss='categorical_crossentropy',
-              optimizer='adam',
-              metrics=['accuracy'])
-
-img = image.load_img(filename, target_size=(img_height, img_width))
-x = image.img_to_array(img)
-x = np.expand_dims(x, axis=0)
-
-x = x / 255.0
-
-pred = model.predict(x)[0]
-
 classes = [
     '+',
     '-',
@@ -376,6 +343,35 @@ classes = [
     ']',
     '|',
 ]
+
+model = Sequential()
+model.add(Conv2D(32, (3, 3), input_shape=(32, 32, 3)))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
+
+model.add(Conv2D(64, (3, 3)))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
+
+model.add(Flatten())
+model.add(Dense(1024))
+model.add(Activation('tanh'))
+model.add(Dropout(0.5))
+model.add(Dense(len(classes)))
+model.add(Activation('softmax'))
+
+model.load_weights(os.path.join(result_dir, 'weights.h5'))
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+img = image.load_img(filename, target_size=(img_height, img_width))
+x = image.img_to_array(img)
+x = np.expand_dims(x, axis=0)
+
+x = x / 255.0
+
+pred = model.predict(x)[0]
+
+
 top = 5
 top_indices = pred.argsort()[-top:][::-1]
 result = [(classes[i], pred[i]) for i in top_indices]
